@@ -1,20 +1,23 @@
-
 using UnityEngine;
-
-[RequireComponent(typeof(AnimatedSprites))] 
 
 public class AnimatedSprites : MonoBehaviour
 {
-    public SpriteRenderer spriteRenderer {  get; private set; }
+    public SpriteRenderer spriteRenderer { get; private set; }
     public Sprite[] sprites;
     public float animationTime = 0.25f;
     public int animationFrame { get; private set; }
     public bool loop = true;
-    
+
     private void Awake()
     {
-        this.spriteRenderer = GetComponent<SpriteRenderer>();
+        // Поиск компонента SpriteRenderer в дочерних объектах
+        this.spriteRenderer = GetComponentInChildren<SpriteRenderer>();
 
+        // Проверка, был ли найден SpriteRenderer
+        if (this.spriteRenderer == null)
+        {
+            Debug.LogError("SpriteRenderer не найден на дочернем объекте!");
+        }
     }
 
     private void Start()
@@ -24,10 +27,11 @@ public class AnimatedSprites : MonoBehaviour
 
     private void Advance()
     {
-        if (!this.spriteRenderer.enabled)
+        if (this.spriteRenderer == null || !this.spriteRenderer.enabled)
         {
             return;
         }
+
         this.animationFrame++;
 
         if (this.animationFrame >= this.sprites.Length && this.loop)
@@ -40,11 +44,10 @@ public class AnimatedSprites : MonoBehaviour
             this.spriteRenderer.sprite = this.sprites[this.animationFrame];
         }
     }
-    
+
     public void Restart()
     {
         this.animationFrame = -1;
         Advance();
     }
-
 }

@@ -1,14 +1,18 @@
 using UnityEngine;
+using UnityEngine.UI;
+
 
 public class Manager : MonoBehaviour
 {
     public Enemy[] enemy;
     public MainChar mainchar;
-    public Transform cols;
+    public Transform coins;
 
     public int score { get; private set; }
     
     public int lives { get; private set; }
+
+    public int enemyMultiplier { get; private set; } = 1;
 
     private void Start()
     {
@@ -31,9 +35,9 @@ public class Manager : MonoBehaviour
 
     private void NewRound()
     {
-        foreach (Transform col in this.cols)
+        foreach (Transform coin in this.coins)
         {
-            col.gameObject.SetActive(true);
+            coin.gameObject.SetActive(true);
         }
 
         ResetState();
@@ -42,11 +46,13 @@ public class Manager : MonoBehaviour
 
     private void ResetState()
     {
+        ResetEnemyMultiplier();
+
         for (int i = 0; i < this.enemy.Length; i++)
         {
-            this.enemy[i].gameObject.SetActive(true);
+            this.enemy[i].ResetState();
         }
-        this.mainchar.gameObject.SetActive(true);
+        this.mainchar.ResetState();
     }
     
     private void GameOver()
@@ -70,7 +76,9 @@ public class Manager : MonoBehaviour
 
     public void EnemyEaten(Enemy enemy)
     {
-        SetScore(this.score + enemy.points);
+        int points = enemy.points * this.enemyMultiplier;
+        SetScore(this.score + points);
+        this.enemyMultiplier++;
     }
 
     public void MainCharEaten()
@@ -86,4 +94,42 @@ public class Manager : MonoBehaviour
             GameOver();
         }
     }
+    
+    public void CoinEaten(Coin coin)
+    {
+        coin.gameObject.SetActive(false);
+        SetScore(this.score + coin.points);
+        if (!AllCoins())
+        {
+            this.mainchar.gameObject.SetActive(false);
+            Invoke(nameof(NewRound), 3.0f);
+        }
+    }
+
+    public void PowerCoinEaten(PowerCoin coin)
+    {
+        CoinEaten(coin);
+        CancelInvoke();
+        Invoke(nameof(ResetEnemyMultiplier), coin.duration);
+
+    }
+
+    private bool AllCoins()
+    {
+        foreach (Transform coin in this.coins)
+        {
+            if (coin.gameObject.activeSelf)
+            {
+                return true;
+            }
+        }
+        return false; 
+    }
+
+    private void ResetEnemyMultiplier()
+    {
+        this.enemyMultiplier = 1;
+
+    }
+
 }
