@@ -1,27 +1,36 @@
 using UnityEngine;
 
-public class EnemyScatter : EnemyBeh
+public class EnemyScatter : EnemyBehavior
 {
-    
+    private void OnDisable()
+    {
+        enemy.chase.Enable();
+    }
+
     private void OnTriggerEnter2D(Collider2D other)
     {
         Node node = other.GetComponent<Node>();
 
-        if (node != null && enabled && !enemy.fear.enabled)
+        // Do nothing while the enemy is frightened
+        if (node != null && enabled && !enemy.frightened.enabled)
         {
-            int index = Random.Range(0, node.availableDirection.Count);
+            // Pick a random available direction
+            int index = Random.Range(0, node.availableDirections.Count);
 
-            if (node.availableDirection.Count > 1 && node.availableDirection[index] == -enemy.movement.direction)
+            // Prefer not to go back the same direction so increment the index to
+            // the next available direction
+            if (node.availableDirections.Count > 1 && node.availableDirections[index] == -enemy.movement.direction)
             {
                 index++;
 
-                if (index >= node.availableDirection.Count)
+                // Wrap the index back around if overflowed
+                if (index >= node.availableDirections.Count)
                 {
                     index = 0;
                 }
             }
 
-            enemy.movement.SetDirection(node.availableDirection[index]);
+            enemy.movement.SetDirection(node.availableDirections[index]);
         }
     }
 

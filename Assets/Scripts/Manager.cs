@@ -1,18 +1,42 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-
+[DefaultExecutionOrder(-100)]
 public class Manager : MonoBehaviour
 {
-    public Enemy[] enemy;
-    public MainChar mainchar;
-    public Transform coins;
+    public static Manager Instance { get; private set; }
 
-    public int score { get; private set; }
-    
-    public int lives { get; private set; }
+    [SerializeField] private Enemy[] enemies;
+    [SerializeField] private MainChar mainchar;
+    [SerializeField] private Transform coins;
+    [SerializeField] private Text gameOverText;
+    [SerializeField] private Text scoreText;
+    [SerializeField] private Text livesText;
 
-    public int enemyMultiplier { get; private set; } = 1;
+    public int score { get; private set; } = 0;
+    public int lives { get; private set; } = 3;
+
+    private int enemyMultiplier = 1;
+
+    private void Awake()
+    {
+        if (Instance != null)
+        {
+            DestroyImmediate(gameObject);
+        }
+        else
+        {
+            Instance = this;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+    }
 
     private void Start()
     {
@@ -21,11 +45,12 @@ public class Manager : MonoBehaviour
 
     private void Update()
     {
-        if (this.lives <= 0 && Input.anyKeyDown) {
+        if (lives <= 0 && Input.anyKeyDown)
+        {
             NewGame();
         }
     }
-    
+
     private void NewGame()
     {
         SetScore(0);
@@ -35,101 +60,131 @@ public class Manager : MonoBehaviour
 
     private void NewRound()
     {
-        foreach (Transform coin in this.coins)
+        gameOverText.enabled = false;
+
+        foreach (Transform coin in coins)
         {
             coin.gameObject.SetActive(true);
         }
 
         ResetState();
-        
     }
 
     private void ResetState()
     {
-        ResetEnemyMultiplier();
-
-        for (int i = 0; i < this.enemy.Length; i++)
+        for (int i = 0; i < enemies.Length; i++)
         {
-            this.enemy[i].ResetState();
+            enemies[i].ResetState();
         }
-        this.mainchar.ResetState();
+
+        mainchar.ResetState();
     }
-    
+
     private void GameOver()
     {
-        for (int i = 0; i < this.enemy.Length; i++)
-        {
-            this.enemy[i].gameObject.SetActive(false);
-        }
-        this.mainchar.gameObject.SetActive(false);
-    }
+        gameOverText.enabled = true;
 
-    private void SetScore(int score)
-    { 
-        this.score = score;
+        for (int i = 0; i < enemies.Length; i++)
+        {
+            enemies[i].gameObject.SetActive(false);
+        }
+
+        mainchar.gameObject.SetActive(false);
     }
 
     private void SetLives(int lives)
     {
         this.lives = lives;
+        livesText.text = "x" + lives.ToString();
     }
 
-    public void EnemyEaten(Enemy enemy)
+    private void SetScore(int score)
     {
-        int points = enemy.points * this.enemyMultiplier;
-        SetScore(this.score + points);
-        this.enemyMultiplier++;
+        this.score = score;
+        scoreText.text = score.ToString().PadLeft(2, '0');
     }
 
     public void MainCharEaten()
     {
-        this.mainchar.gameObject.SetActive(false);
-        SetLives(this.lives - 1);
-        if (this.lives > 0)
+        mainchar.DeathSequence();
+
+        SetLives(lives - 1);
+
+        if (lives > 0)
         {
-            Invoke(nameof(ResetState), 3.0f);
+            Invoke(nameof(ResetState), 3f);
         }
         else
         {
             GameOver();
         }
     }
-    
+
+    public void EnemyEaten(Enemy enemy)
+    {
+        int points = enemy.points * enemyMultiplier;
+        SetScore(score + points);
+
+        enemyMultiplier++;
+    }
+
     public void CoinEaten(Coin coin)
     {
         coin.gameObject.SetActive(false);
-        SetScore(this.score + coin.points);
-        if (!AllCoins())
+
+        SetScore(score + coin.points);
+
+        if (!HasRemainingCoins())
         {
-            this.mainchar.gameObject.SetActive(false);
-            Invoke(nameof(NewRound), 3.0f);
+            mainchar.gameObject.SetActive(false);
+            Invoke(nameof(NewRound), 3f);
         }
     }
 
     public void PowerCoinEaten(PowerCoin coin)
     {
-        CoinEaten(coin);
-        CancelInvoke();
-        Invoke(nameof(ResetEnemyMultiplier), coin.duration);
+        // Включаем frightened режим для всех призраков
+        for (int i = 0; i < enemies.Length; i++)
+        {
+            enemies[i].frightened.Enable(coin.duration);
+        }
 
+        // Убираем съеденный PowerCoin
+        CoinEaten(coin);
+
+        // Меняем спрайт MainChar на суперспрайт
+        mainchar.CollectSuperPoint();
+
+        // Если таймер уже был запущен, сбрасываем его, чтобы продлить действие суперсилы
+        CancelInvoke(nameof(ResetMainCharSprite));
+
+        // Запускаем новый таймер для сброса спрайта и возврата к обычному состоянию
+        Invoke(nameof(ResetMainCharSprite), coin.duration);
     }
 
-    private bool AllCoins()
+    private void ResetMainCharSprite()
     {
-        foreach (Transform coin in this.coins)
+        mainchar.ResetToNormalSprite();
+        ResetEnemyMultiplier();  // Сбрасываем множитель очков для призраков
+    }
+
+
+    private bool HasRemainingCoins()
+    {
+        foreach (Transform coin in coins)
         {
             if (coin.gameObject.activeSelf)
             {
                 return true;
             }
         }
-        return false; 
+
+        return false;
     }
 
     private void ResetEnemyMultiplier()
     {
-        this.enemyMultiplier = 1;
-
+        enemyMultiplier = 1;
     }
 
 }
