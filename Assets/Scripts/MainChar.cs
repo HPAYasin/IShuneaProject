@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 [RequireComponent(typeof(Movement))]
 public class MainChar : MonoBehaviour
@@ -6,31 +7,57 @@ public class MainChar : MonoBehaviour
     [SerializeField]
     private AnimatedSprite deathSequence;
 
+    [SerializeField]
+    private AudioSource footstepAudioSource1;  // Первый AudioSource для звука шагов
+    [SerializeField]
+    private AudioSource footstepAudioSource2;  // Второй AudioSource для звука шагов
+    [SerializeField]
+    private AudioClip footstepClip1;  // Первый звуковой клип
+    [SerializeField]
+    private AudioClip footstepClip2;  // Второй звуковой клип
+    [SerializeField]
+    private float footstepDelay = 0.5f;  // Задержка между шагами
+
+    [SerializeField]
+    private AudioSource swordAudioSource;  // AudioSource для звука меча
+    [SerializeField]
+    private AudioClip swordSwingSound1;  // Первый звуковой клип для удара мечом
+    [SerializeField]
+    private AudioClip swordSwingSound2;  // Второй звуковой клип для удара мечом
+    [SerializeField]
+    private AudioClip swordUnsheatheSound;  // Звуковой клип для вытаскивания меча из ножен
+    [SerializeField]
+    private float swordSwingDelay = 0.5f;  // Параметр для задержки звука удара мечом
+
     private SpriteRenderer spriteRenderer;
     private CircleCollider2D circleCollider;
     private Movement movement;
     private Vector3 originalScale;
     private bool isFacingLeft = false;
+    private bool isMoving = false;
+    private bool canPlayFootstep = true;
+    private int currentFootstepIndex = 0;
 
     private GameObject deathPrefab;
     private GameObject mainSpritePrefab;
-    private GameObject superSpritePrefab;  // Новый подпрефаб для режима суперсилы
+    private GameObject superSpritePrefab;
+    private Coroutine swordSwingCoroutine;  // Храним корутину для остановки махов мечом
+    private int currentSwordSwingIndex = 0;  // Переменная для чередования звуков ударов мечом
 
     private void Awake()
     {
         deathPrefab = transform.Find("Death").gameObject;
         mainSpritePrefab = transform.Find("MainSprite").gameObject;
-        superSpritePrefab = transform.Find("SuperSprite").gameObject;  // Инициализация SuperSprite
+        superSpritePrefab = transform.Find("SuperSprite").gameObject;
 
         circleCollider = GetComponent<CircleCollider2D>();
         movement = GetComponent<Movement>();
 
-        originalScale = transform.localScale; // Инициализация оригинального масштаба
+        originalScale = transform.localScale;
 
-        // При старте игры включаем основной спрайт и отключаем все остальные
         deathPrefab.SetActive(false);
         mainSpritePrefab.SetActive(true);
-        superSpritePrefab.SetActive(false);  // Отключаем спрайт суперсилы
+        superSpritePrefab.SetActive(false);
     }
 
     private void Update()
@@ -54,7 +81,36 @@ public class MainChar : MonoBehaviour
             transform.localScale = originalScale;
         }
 
-        RotateCharacter(); // Функция для поворота персонажа в зависимости от направления
+        isMoving = movement.direction != Vector2.zero;
+
+        if (isMoving && canPlayFootstep)
+        {
+            StartCoroutine(PlayFootstepWithDelay());
+        }
+
+        RotateCharacter();
+    }
+
+    private IEnumerator PlayFootstepWithDelay()
+    {
+        if (currentFootstepIndex == 0)
+        {
+            footstepAudioSource1.clip = footstepClip1;
+            footstepAudioSource1.Play();
+        }
+        else
+        {
+            footstepAudioSource2.clip = footstepClip2;
+            footstepAudioSource2.Play();
+        }
+
+        currentFootstepIndex = (currentFootstepIndex + 1) % 2;
+
+        canPlayFootstep = false;
+
+        yield return new WaitForSeconds(footstepDelay);
+
+        canPlayFootstep = true;
     }
 
     private void RotateCharacter()
@@ -83,47 +139,98 @@ public class MainChar : MonoBehaviour
     {
         enabled = true;
 
-        // Включаем основной спрайт
         mainSpritePrefab.SetActive(true);
-        superSpritePrefab.SetActive(false);  // Отключаем спрайт суперсилы
+        superSpritePrefab.SetActive(false);
 
         circleCollider.enabled = true;
 
-        // Отключаем спрайт смерти
         deathPrefab.SetActive(false);
 
         movement.ResetState();
         gameObject.SetActive(true);
+
+        StopSwordSwingSound();  // Останавливаем махи мечом при сбросе состояния
     }
 
     public void DeathSequence()
     {
         enabled = false;
 
-        // Отключаем все спрайты, кроме спрайта смерти
         mainSpritePrefab.SetActive(false);
         superSpritePrefab.SetActive(false);
         circleCollider.enabled = false;
         movement.enabled = false;
 
-        // Включаем спрайт смерти
         deathPrefab.SetActive(true);
-        deathSequence.Restart();  // Если есть логика анимации для спрайта смерти
+        deathSequence.Restart();
     }
 
-    // Метод для включения спрайта суперсилы
+    // Метод для включения суперсилы
     public void CollectSuperPoint()
     {
-        mainSpritePrefab.SetActive(false);  // Отключаем обычный спрайт
-        superSpritePrefab.SetActive(true);  // Включаем суперспрайт
+        mainSpritePrefab.SetActive(false);
+        superSpritePrefab.SetActive(true);
         movement.speedMultiplier = 1.5f;  // Увеличиваем скорость
+
+        // Проигрываем звук вытаскивания меча из ножен один раз
+        if (swordUnsheatheSound != null)
+        {
+            swordAudioSource.PlayOneShot(swordUnsheatheSound);
+        }
+
+        // Проверяем, запущена ли корутина махов мечом
+        if (swordSwingCoroutine == null)
+        {
+            // Начинаем проигрывать звуки махов мечом
+            swordSwingCoroutine = StartCoroutine(PlaySwordSwingSounds());
+        }
+    }
+
+    // Корутин для чередования звуков ударов мечом
+    private IEnumerator PlaySwordSwingSounds()
+    {
+        while (true)
+        {
+            if (currentSwordSwingIndex == 0)
+            {
+                if (swordSwingSound1 != null)
+                {
+                    swordAudioSource.PlayOneShot(swordSwingSound1);
+                }
+            }
+            else
+            {
+                if (swordSwingSound2 != null)
+                {
+                    swordAudioSource.PlayOneShot(swordSwingSound2);
+                }
+            }
+
+            // Чередуем звуки ударов мечом
+            currentSwordSwingIndex = (currentSwordSwingIndex + 1) % 2;
+
+            // Используем заданную задержку для звука удара мечом
+            yield return new WaitForSeconds(swordSwingDelay);
+        }
     }
 
     // Метод для возврата к обычному спрайту
     public void ResetToNormalSprite()
     {
-        superSpritePrefab.SetActive(false);  // Отключаем суперспрайт
-        mainSpritePrefab.SetActive(true);    // Включаем обычный спрайт
-        movement.speedMultiplier = 1.0f;     // Возвращаем скорость к нормальной
+        superSpritePrefab.SetActive(false);
+        mainSpritePrefab.SetActive(true);
+        movement.speedMultiplier = 1.0f;
+
+        StopSwordSwingSound();  // Останавливаем звуки махов мечом
+    }
+
+    // Остановка корутины махов мечом
+    private void StopSwordSwingSound()
+    {
+        if (swordSwingCoroutine != null)
+        {
+            StopCoroutine(swordSwingCoroutine);  // Останавливаем махи мечом
+            swordSwingCoroutine = null;  // Сбрасываем переменную
+        }
     }
 }

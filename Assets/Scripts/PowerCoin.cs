@@ -7,6 +7,10 @@ public class PowerCoin : Coin
     protected override void Eat()
     {
         Manager.Instance.PowerCoinEaten(this);
-        base.Eat(); // Убедитесь, что вызывается базовый метод для отключения PowerCoin
+
+        // Воспроизводим звук для PowerCoin через Manager
+        Manager.Instance.PlayPowerCoinSound();
+
+        base.Eat(); // Вызываем базовый метод для завершения поедания
     }
 }

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 [DefaultExecutionOrder(-100)]
 public class Manager : MonoBehaviour
@@ -12,6 +13,23 @@ public class Manager : MonoBehaviour
     [SerializeField] private Text gameOverText;
     [SerializeField] private Text scoreText;
     [SerializeField] private Text livesText;
+
+    [Header("Audio")]
+    [SerializeField] private AudioSource coinAudioSource;
+    [SerializeField] private AudioSource powerCoinAudioSource;
+    [SerializeField] private AudioSource teleportAudioSource;
+    [SerializeField] private AudioSource playerDeathAudioSource;
+    [SerializeField] private AudioSource enemyKillAudioSource;
+    [SerializeField] private AudioSource gameOverAudioSource;  // Для звука конца игры
+    [SerializeField] private AudioClip coinSound;
+    [SerializeField] private AudioClip powerCoinSound;
+    [SerializeField] private AudioClip playerDeathSound;
+    [SerializeField] private AudioClip teleportSound;  // Звуковой клип для телепортации
+    [SerializeField] private AudioClip enemyKillSound;
+    [SerializeField] private AudioClip gameOverSound;  // Звуковой клип для конца игры
+    [SerializeField] private float coinSoundDelay = 0.5f;
+
+    private bool canPlayCoinSound = true;
 
     public int score { get; private set; } = 0;
     public int lives { get; private set; } = 3;
@@ -84,12 +102,19 @@ public class Manager : MonoBehaviour
     {
         gameOverText.enabled = true;
 
+        // Отключаем врагов и персонажа
         for (int i = 0; i < enemies.Length; i++)
         {
             enemies[i].gameObject.SetActive(false);
         }
 
         mainchar.gameObject.SetActive(false);
+
+        // Проигрываем звук конца игры
+        if (gameOverSound != null)
+        {
+            gameOverAudioSource.PlayOneShot(gameOverSound);
+        }
     }
 
     private void SetLives(int lives)
@@ -108,6 +133,11 @@ public class Manager : MonoBehaviour
     {
         mainchar.DeathSequence();
 
+        if (playerDeathSound != null)
+        {
+            playerDeathAudioSource.PlayOneShot(playerDeathSound);
+        }
+
         SetLives(lives - 1);
 
         if (lives > 0)
@@ -125,6 +155,11 @@ public class Manager : MonoBehaviour
         int points = enemy.points * enemyMultiplier;
         SetScore(score + points);
 
+        if (enemyKillSound != null)
+        {
+            enemyKillAudioSource.PlayOneShot(enemyKillSound);
+        }
+
         enemyMultiplier++;
     }
 
@@ -133,6 +168,8 @@ public class Manager : MonoBehaviour
         coin.gameObject.SetActive(false);
 
         SetScore(score + coin.points);
+
+        PlayCoinSound();
 
         if (!HasRemainingCoins())
         {
@@ -143,31 +180,25 @@ public class Manager : MonoBehaviour
 
     public void PowerCoinEaten(PowerCoin coin)
     {
-        // Включаем frightened режим для всех призраков
         for (int i = 0; i < enemies.Length; i++)
         {
             enemies[i].frightened.Enable(coin.duration);
         }
 
-        // Убираем съеденный PowerCoin
         CoinEaten(coin);
-
-        // Меняем спрайт MainChar на суперспрайт
         mainchar.CollectSuperPoint();
 
-        // Если таймер уже был запущен, сбрасываем его, чтобы продлить действие суперсилы
-        CancelInvoke(nameof(ResetMainCharSprite));
+        PlayPowerCoinSound();
 
-        // Запускаем новый таймер для сброса спрайта и возврата к обычному состоянию
+        CancelInvoke(nameof(ResetMainCharSprite));
         Invoke(nameof(ResetMainCharSprite), coin.duration);
     }
 
     private void ResetMainCharSprite()
     {
         mainchar.ResetToNormalSprite();
-        ResetEnemyMultiplier();  // Сбрасываем множитель очков для призраков
+        ResetEnemyMultiplier();
     }
-
 
     private bool HasRemainingCoins()
     {
@@ -187,4 +218,37 @@ public class Manager : MonoBehaviour
         enemyMultiplier = 1;
     }
 
+    public void PlayCoinSound()
+    {
+        if (coinSound != null && canPlayCoinSound)
+        {
+            StartCoroutine(PlayCoinSoundWithDelay());
+        }
+    }
+
+    private IEnumerator PlayCoinSoundWithDelay()
+    {
+        coinAudioSource.PlayOneShot(coinSound);
+        canPlayCoinSound = false;
+
+        yield return new WaitForSeconds(coinSoundDelay);
+
+        canPlayCoinSound = true;
+    }
+
+    public void PlayPowerCoinSound()
+    {
+        if (powerCoinSound != null && !powerCoinAudioSource.isPlaying)
+        {
+            powerCoinAudioSource.PlayOneShot(powerCoinSound);
+        }
+    }
+
+    public void PlayTeleportSound()
+    {
+        if (teleportSound != null && teleportAudioSource != null)
+        {
+            teleportAudioSource.PlayOneShot(teleportSound);
+        }
+    }
 }
