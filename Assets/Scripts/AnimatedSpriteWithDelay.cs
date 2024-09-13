@@ -3,14 +3,14 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class AnimatedSpriteWithDelay : MonoBehaviour
 {
-    public Sprite[] sprites = new Sprite[0]; // Массив спрайтов
-    public float animationTime = 0.25f; // Время показа одного спрайта
-    public float loopDelay = 1.0f; // Задержка между циклами
-    public bool loop = true; // Включение циклического воспроизведения
+    public Sprite[] sprites = new Sprite[0]; 
+    public float animationTime = 0.25f; 
+    public float loopDelay = 1.0f; 
+    public bool loop = true; 
 
     private SpriteRenderer spriteRenderer;
     private int animationFrame;
-    private bool isPlaying = true; // Флаг для отслеживания проигрывания анимации
+    private bool isPlaying = true; 
 
     private void Awake()
     {
@@ -20,18 +20,17 @@ public class AnimatedSpriteWithDelay : MonoBehaviour
     private void OnEnable()
     {
         spriteRenderer.enabled = true;
-        Restart(); // Запускаем анимацию
+        Restart(); 
     }
 
     private void OnDisable()
     {
         spriteRenderer.enabled = false;
-        CancelInvoke(nameof(Advance)); // Останавливаем анимацию при выключении
+        CancelInvoke(nameof(Advance)); 
     }
 
     private void Start()
     {
-        // Начинаем анимацию с задержкой между циклами
         InvokeRepeating(nameof(Advance), animationTime, animationTime);
     }
 
@@ -48,7 +47,6 @@ public class AnimatedSpriteWithDelay : MonoBehaviour
         {
             if (loop)
             {
-                // Если анимация закончилась, ставим на паузу и добавляем задержку перед следующим циклом
                 isPlaying = false;
                 Invoke(nameof(StartNextLoop), loopDelay);
             }
@@ -63,14 +61,14 @@ public class AnimatedSpriteWithDelay : MonoBehaviour
 
     private void StartNextLoop()
     {
-        isPlaying = true; // Снимаем паузу, и анимация снова проигрывается
+        isPlaying = true; 
         animationFrame = 0;
     }
 
     public void Restart()
     {
-        animationFrame = -1; // Начинаем с первого спрайта
-        isPlaying = true; // Убеждаемся, что анимация идет
-        Advance(); // Принудительный вызов первого кадра
+        animationFrame = -1; 
+        isPlaying = true; 
+        Advance(); 
     }
 }

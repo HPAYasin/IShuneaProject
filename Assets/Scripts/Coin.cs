@@ -9,10 +9,8 @@ public class Coin : MonoBehaviour
     {
         Manager.Instance.CoinEaten(this);
 
-        // Добавляем вызов звука через Manager
         Manager.Instance.PlayCoinSound();
 
-        // После того как монета съедена, мы можем деактивировать или уничтожить объект
         gameObject.SetActive(false);
     }
 

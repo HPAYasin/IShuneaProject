@@ -8,26 +8,26 @@ public class MainChar : MonoBehaviour
     private AnimatedSprite deathSequence;
 
     [SerializeField]
-    private AudioSource footstepAudioSource1;  // Первый AudioSource для звука шагов
+    private AudioSource footstepAudioSource1;  
     [SerializeField]
-    private AudioSource footstepAudioSource2;  // Второй AudioSource для звука шагов
+    private AudioSource footstepAudioSource2;  
     [SerializeField]
-    private AudioClip footstepClip1;  // Первый звуковой клип
+    private AudioClip footstepClip1;  
     [SerializeField]
-    private AudioClip footstepClip2;  // Второй звуковой клип
+    private AudioClip footstepClip2;  
     [SerializeField]
-    private float footstepDelay = 0.5f;  // Задержка между шагами
+    private float footstepDelay = 0.5f;  
 
     [SerializeField]
-    private AudioSource swordAudioSource;  // AudioSource для звука меча
+    private AudioSource swordAudioSource;  
     [SerializeField]
-    private AudioClip swordSwingSound1;  // Первый звуковой клип для удара мечом
+    private AudioClip swordSwingSound1;  
     [SerializeField]
-    private AudioClip swordSwingSound2;  // Второй звуковой клип для удара мечом
+    private AudioClip swordSwingSound2; 
     [SerializeField]
-    private AudioClip swordUnsheatheSound;  // Звуковой клип для вытаскивания меча из ножен
+    private AudioClip swordUnsheatheSound; 
     [SerializeField]
-    private float swordSwingDelay = 0.5f;  // Параметр для задержки звука удара мечом
+    private float swordSwingDelay = 0.5f;  
 
     private SpriteRenderer spriteRenderer;
     private CircleCollider2D circleCollider;
@@ -41,8 +41,8 @@ public class MainChar : MonoBehaviour
     private GameObject deathPrefab;
     private GameObject mainSpritePrefab;
     private GameObject superSpritePrefab;
-    private Coroutine swordSwingCoroutine;  // Храним корутину для остановки махов мечом
-    private int currentSwordSwingIndex = 0;  // Переменная для чередования звуков ударов мечом
+    private Coroutine swordSwingCoroutine;  
+    private int currentSwordSwingIndex = 0;  
 
     private void Awake()
     {
@@ -149,7 +149,7 @@ public class MainChar : MonoBehaviour
         movement.ResetState();
         gameObject.SetActive(true);
 
-        StopSwordSwingSound();  // Останавливаем махи мечом при сбросе состояния
+        StopSwordSwingSound();  
     }
 
     public void DeathSequence()
@@ -165,28 +165,23 @@ public class MainChar : MonoBehaviour
         deathSequence.Restart();
     }
 
-    // Метод для включения суперсилы
     public void CollectSuperPoint()
     {
         mainSpritePrefab.SetActive(false);
         superSpritePrefab.SetActive(true);
-        movement.speedMultiplier = 1.5f;  // Увеличиваем скорость
+        movement.speedMultiplier = 1.5f;  
 
-        // Проигрываем звук вытаскивания меча из ножен один раз
         if (swordUnsheatheSound != null)
         {
             swordAudioSource.PlayOneShot(swordUnsheatheSound);
         }
 
-        // Проверяем, запущена ли корутина махов мечом
         if (swordSwingCoroutine == null)
         {
-            // Начинаем проигрывать звуки махов мечом
             swordSwingCoroutine = StartCoroutine(PlaySwordSwingSounds());
         }
     }
 
-    // Корутин для чередования звуков ударов мечом
     private IEnumerator PlaySwordSwingSounds()
     {
         while (true)
@@ -206,31 +201,27 @@ public class MainChar : MonoBehaviour
                 }
             }
 
-            // Чередуем звуки ударов мечом
             currentSwordSwingIndex = (currentSwordSwingIndex + 1) % 2;
 
-            // Используем заданную задержку для звука удара мечом
             yield return new WaitForSeconds(swordSwingDelay);
         }
     }
 
-    // Метод для возврата к обычному спрайту
     public void ResetToNormalSprite()
     {
         superSpritePrefab.SetActive(false);
         mainSpritePrefab.SetActive(true);
         movement.speedMultiplier = 1.0f;
 
-        StopSwordSwingSound();  // Останавливаем звуки махов мечом
+        StopSwordSwingSound(); 
     }
 
-    // Остановка корутины махов мечом
     private void StopSwordSwingSound()
     {
         if (swordSwingCoroutine != null)
         {
-            StopCoroutine(swordSwingCoroutine);  // Останавливаем махи мечом
-            swordSwingCoroutine = null;  // Сбрасываем переменную
+            StopCoroutine(swordSwingCoroutine);  
+            swordSwingCoroutine = null;  
         }
     }
 }

@@ -13,7 +13,6 @@ public class EnemyHome : EnemyBehavior
 
     private void OnDisable()
     {
-        // Check for active self to prevent error when object is destroyed
         if (gameObject.activeInHierarchy)
         {
             StartCoroutine(ExitTransition());
@@ -22,8 +21,6 @@ public class EnemyHome : EnemyBehavior
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        // Reverse direction everytime the enemy hits a wall to create the
-        // effect of the enemy bouncing around the home
         if (enabled && collision.gameObject.layer == LayerMask.NameToLayer("Obstacle"))
         {
             enemy.movement.SetDirection(-enemy.movement.direction);
@@ -32,7 +29,6 @@ public class EnemyHome : EnemyBehavior
 
     private IEnumerator ExitTransition()
     {
-        // Turn off movement while we manually animate the position
         enemy.movement.SetDirection(Vector2.up, true);
         enemy.movement.rb.isKinematic = true;
         enemy.movement.enabled = false;
@@ -42,7 +38,6 @@ public class EnemyHome : EnemyBehavior
         float duration = 0.5f;
         float elapsed = 0f;
 
-        // Animate to the starting point
         while (elapsed < duration)
         {
             enemy.SetPosition(Vector3.Lerp(position, inside.position, elapsed / duration));
@@ -52,7 +47,6 @@ public class EnemyHome : EnemyBehavior
 
         elapsed = 0f;
 
-        // Animate exiting the enemy home
         while (elapsed < duration)
         {
             enemy.SetPosition(Vector3.Lerp(inside.position, outside.position, elapsed / duration));
@@ -60,7 +54,6 @@ public class EnemyHome : EnemyBehavior
             yield return null;
         }
 
-        // Pick a random direction left or right and re-enable movement
         enemy.movement.SetDirection(new Vector2(Random.value < 0.5f ? -1f : 1f, 0f), true);
         enemy.movement.rb.isKinematic = false;
         enemy.movement.enabled = true;

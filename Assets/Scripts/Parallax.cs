@@ -2,40 +2,36 @@ using UnityEngine;
 
 public class Parallax : MonoBehaviour
 {
-    public Transform[] clouds;        // Массив объектов с облаками
-    public float[] moveSpeeds;        // Скорость движения для каждого облака
-    public float moveDistance = 2f;   // Максимальная дистанция движения вверх и вниз
-    public float smoothing = 1f;      // Скорость сглаживания движения
+    public Transform[] clouds;        
+    public float[] moveSpeeds;        
+    public float moveDistance = 2f;   
+    public float smoothing = 1f;      
 
-    private Vector3[] startingPositions; // Исходные позиции облаков
-    private bool[] movingUp;             // Флаги, чтобы отслеживать направление движения
+    private Vector3[] startingPositions; 
+    private bool[] movingUp;             
 
     private void Start()
     {
         startingPositions = new Vector3[clouds.Length];
         movingUp = new bool[clouds.Length];
 
-        // Запоминаем начальные позиции облаков и устанавливаем начальные направления
         for (int i = 0; i < clouds.Length; i++)
         {
             startingPositions[i] = clouds[i].position;
-            movingUp[i] = true; // Начинаем движение вверх
+            movingUp[i] = true; 
         }
     }
 
     private void Update()
     {
-        // Обновляем положение каждого облака
         for (int i = 0; i < clouds.Length; i++)
         {
-            // Двигаем облако в зависимости от направления
             float moveStep = moveSpeeds[i] * Time.deltaTime;
 
             if (movingUp[i])
             {
-                clouds[i].position += new Vector3(0, moveStep, 0); // Движение вверх
+                clouds[i].position += new Vector3(0, moveStep, 0); 
 
-                // Если облако достигло максимального смещения вверх, меняем направление
                 if (clouds[i].position.y >= startingPositions[i].y + moveDistance)
                 {
                     movingUp[i] = false; // Движение вниз
@@ -43,16 +39,14 @@ public class Parallax : MonoBehaviour
             }
             else
             {
-                clouds[i].position -= new Vector3(0, moveStep, 0); // Движение вниз
+                clouds[i].position -= new Vector3(0, moveStep, 0); 
 
-                // Если облако достигло максимального смещения вниз, меняем направление
                 if (clouds[i].position.y <= startingPositions[i].y - moveDistance)
                 {
-                    movingUp[i] = true; // Движение вверх
+                    movingUp[i] = true; 
                 }
             }
 
-            // Плавность движения
             clouds[i].position = Vector3.Lerp(clouds[i].position, clouds[i].position, smoothing * Time.deltaTime);
         }
     }

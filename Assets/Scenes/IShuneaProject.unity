@@ -1174,7 +1174,7 @@ MonoBehaviour:
   teleportSound: {fileID: 8300000, guid: 5c902a36205d77c43ae7eea981e4688e, type: 3}
   enemyKillSound: {fileID: 8300000, guid: 5c9bb3fe664c6f840a2cb68e6ff91bdc, type: 3}
   gameOverSound: {fileID: 8300000, guid: ee793459ed3f3554cb1db52368c9c038, type: 3}
-  coinSoundDelay: 0.3
+  coinSoundDelay: 0.45
 --- !u!4 &469897152
 Transform:
   m_ObjectHideFlags: 0

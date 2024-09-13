@@ -26,7 +26,7 @@ public class Enemy : MonoBehaviour
         frightened = GetComponent<EnemyFrightened>();
         spriteRenderer = GetComponent<SpriteRenderer>();
 
-        originalScale = transform.localScale; // Сохраняем оригинальный масштаб
+        originalScale = transform.localScale; 
     }
 
     private void Start()
@@ -58,52 +58,47 @@ public class Enemy : MonoBehaviour
             initialBehavior.Enable();
         }
 
-        // Сброс зеркалирования при сбросе состояния
         transform.localScale = originalScale;
-        transform.rotation = Quaternion.identity;  // Сбрасываем поворот
+        transform.rotation = Quaternion.identity;  
     }
 
     private void FlipAndRotate()
     {
-        // Логика зеркалирования влево и вправо
         if (movement.direction == Vector2.left)
         {
-            transform.localScale = new Vector3(-originalScale.x, originalScale.y, originalScale.z); // Зеркалируем по оси X
+            transform.localScale = new Vector3(-originalScale.x, originalScale.y, originalScale.z); 
             isFacingLeft = true;
         }
         else if (movement.direction == Vector2.right)
         {
-            transform.localScale = originalScale; // Возвращаем оригинальный масштаб
+            transform.localScale = originalScale; 
             isFacingLeft = false;
         }
 
-        // Логика поворота вверх и вниз с учётом зеркалирования
         if (movement.direction == Vector2.up)
         {
-            // Поворачиваем персонажа в зависимости от того, смотрит ли он влево
             if (isFacingLeft)
             {
-                transform.rotation = Quaternion.Euler(0, 0, -90); // Поворачиваем против часовой стрелки
+                transform.rotation = Quaternion.Euler(0, 0, -90); 
             }
             else
             {
-                transform.rotation = Quaternion.Euler(0, 0, 90);  // Поворачиваем по часовой стрелке
+                transform.rotation = Quaternion.Euler(0, 0, 90);  
             }
         }
         else if (movement.direction == Vector2.down)
         {
             if (isFacingLeft)
             {
-                transform.rotation = Quaternion.Euler(0, 0, 90);  // Поворачиваем по часовой стрелке
+                transform.rotation = Quaternion.Euler(0, 0, 90); 
             }
             else
             {
-                transform.rotation = Quaternion.Euler(0, 0, -90); // Поворачиваем против часовой стрелки
+                transform.rotation = Quaternion.Euler(0, 0, -90); 
             }
         }
         else if (movement.direction == Vector2.left || movement.direction == Vector2.right)
         {
-            // Для движения влево и вправо сбрасываем поворот
             transform.rotation = Quaternion.Euler(0, 0, 0);
         }
     }
@@ -111,7 +106,6 @@ public class Enemy : MonoBehaviour
 
     public void SetPosition(Vector3 position)
     {
-        // Keep the z-position the same since it determines draw depth
         position.z = transform.position.z;
         transform.position = position;
     }

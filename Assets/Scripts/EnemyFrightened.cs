@@ -71,11 +71,8 @@ public class EnemyFrightened : EnemyBehavior
             Vector2 direction = Vector2.zero;
             float maxDistance = float.MinValue;
 
-            // Find the available direction that moves farthest from mainchar
             foreach (Vector2 availableDirection in node.availableDirections)
             {
-                // If the distance in this direction is greater than the current
-                // max distance then this direction becomes the new farthest
                 Vector3 newPosition = transform.position + new Vector3(availableDirection.x, availableDirection.y);
                 float distance = (enemy.target.position - newPosition).sqrMagnitude;
 

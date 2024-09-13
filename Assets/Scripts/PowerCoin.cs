@@ -8,9 +8,8 @@ public class PowerCoin : Coin
     {
         Manager.Instance.PowerCoinEaten(this);
 
-        // Воспроизводим звук для PowerCoin через Manager
         Manager.Instance.PlayPowerCoinSound();
 
-        base.Eat(); // Вызываем базовый метод для завершения поедания
+        base.Eat(); 
     }
 }

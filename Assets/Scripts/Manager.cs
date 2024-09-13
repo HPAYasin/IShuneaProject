@@ -1,6 +1,8 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;  
 using UnityEngine.UI;
 using System.Collections;
+using System;
 
 [DefaultExecutionOrder(-100)]
 public class Manager : MonoBehaviour
@@ -20,13 +22,13 @@ public class Manager : MonoBehaviour
     [SerializeField] private AudioSource teleportAudioSource;
     [SerializeField] private AudioSource playerDeathAudioSource;
     [SerializeField] private AudioSource enemyKillAudioSource;
-    [SerializeField] private AudioSource gameOverAudioSource;  // Для звука конца игры
+    [SerializeField] private AudioSource gameOverAudioSource;  
     [SerializeField] private AudioClip coinSound;
     [SerializeField] private AudioClip powerCoinSound;
     [SerializeField] private AudioClip playerDeathSound;
-    [SerializeField] private AudioClip teleportSound;  // Звуковой клип для телепортации
+    [SerializeField] private AudioClip teleportSound;  
     [SerializeField] private AudioClip enemyKillSound;
-    [SerializeField] private AudioClip gameOverSound;  // Звуковой клип для конца игры
+    [SerializeField] private AudioClip gameOverSound;  
     [SerializeField] private float coinSoundDelay = 0.5f;
 
     private bool canPlayCoinSound = true;
@@ -67,6 +69,11 @@ public class Manager : MonoBehaviour
         {
             NewGame();
         }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            SceneManager.LoadScene("Menu");
+        }
     }
 
     private void NewGame()
@@ -102,7 +109,6 @@ public class Manager : MonoBehaviour
     {
         gameOverText.enabled = true;
 
-        // Отключаем врагов и персонажа
         for (int i = 0; i < enemies.Length; i++)
         {
             enemies[i].gameObject.SetActive(false);
@@ -110,11 +116,12 @@ public class Manager : MonoBehaviour
 
         mainchar.gameObject.SetActive(false);
 
-        // Проигрываем звук конца игры
         if (gameOverSound != null)
         {
             gameOverAudioSource.PlayOneShot(gameOverSound);
         }
+
+        CheckNewRecord(score);
     }
 
     private void SetLives(int lives)
@@ -249,6 +256,19 @@ public class Manager : MonoBehaviour
         if (teleportSound != null && teleportAudioSource != null)
         {
             teleportAudioSource.PlayOneShot(teleportSound);
+        }
+    }
+
+    private void CheckNewRecord(int currentScore)
+    {
+        int bestScore = PlayerPrefs.GetInt("BestScore", 0);
+
+        if (currentScore > bestScore)
+        {
+            PlayerPrefs.SetInt("BestScore", currentScore);
+            PlayerPrefs.SetString("BestScoreDate", DateTime.Now.ToString("yyyy-MM-dd"));
+            PlayerPrefs.Save();
+            Debug.Log("New record: " + currentScore + " on " + DateTime.Now.ToString("yyyy-MM-dd"));
         }
     }
 }
