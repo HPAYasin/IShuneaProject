@@ -3,22 +3,50 @@ using UnityEngine.UI;
 
 public class OptionsMenu : MonoBehaviour
 {
-    [SerializeField] private Slider volumeSlider; 
-    [SerializeField] private Text volumeText;     
+    [SerializeField] private Slider musicVolumeSlider;   
+    [SerializeField] private Text musicVolumeText;       
+    [SerializeField] private Slider sfxVolumeSlider;    
+    [SerializeField] private Text sfxVolumeText;        
+
+    private MusicManager musicManager;   
+    private AudioSource[] allAudioSources; 
 
     private void Start()
     {
-        volumeSlider.value = AudioListener.volume;
 
-        volumeText.text = Mathf.RoundToInt(volumeSlider.value * 100) + "%";
+        musicManager = FindObjectOfType<MusicManager>();
 
-        volumeSlider.onValueChanged.AddListener(delegate { OnVolumeChanged(); });
+        allAudioSources = FindObjectsOfType<AudioSource>();
+
+        if (musicManager != null)
+        {
+            musicVolumeSlider.value = musicManager.musicVolume;
+        }
+
+        musicVolumeText.text = Mathf.RoundToInt(musicVolumeSlider.value * 100) + "%";
+
+        musicVolumeSlider.onValueChanged.AddListener(delegate { OnMusicVolumeChanged(); });
+
+        sfxVolumeSlider.value = AudioListener.volume;
+
+        sfxVolumeText.text = Mathf.RoundToInt(sfxVolumeSlider.value * 100) + "%";
+
+        sfxVolumeSlider.onValueChanged.AddListener(delegate { OnSFXVolumeChanged(); });
     }
 
-    public void OnVolumeChanged()
+    public void OnMusicVolumeChanged()
     {
-        AudioListener.volume = volumeSlider.value;
+        if (musicManager != null)
+        {
+            musicManager.SetMusicVolume(musicVolumeSlider.value);
+            musicVolumeText.text = Mathf.RoundToInt(musicVolumeSlider.value * 100) + "%";
+        }
+    }
 
-        volumeText.text = Mathf.RoundToInt(volumeSlider.value * 100) + "%";
+    public void OnSFXVolumeChanged()
+    {
+        AudioListener.volume = sfxVolumeSlider.value;
+
+        sfxVolumeText.text = Mathf.RoundToInt(sfxVolumeSlider.value * 100) + "%";
     }
 }
