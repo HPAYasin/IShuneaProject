@@ -13,6 +13,8 @@ public class Manager : MonoBehaviour
     [SerializeField] private MainChar mainchar;
     [SerializeField] private Transform coins;
     [SerializeField] private Text gameOverText;
+    [SerializeField] private Text restartText; 
+    [SerializeField] private GameObject blackBackground; 
     [SerializeField] private Text scoreText;
     [SerializeField] private Text livesText;
 
@@ -32,6 +34,7 @@ public class Manager : MonoBehaviour
     [SerializeField] private float coinSoundDelay = 0.5f;
 
     private bool canPlayCoinSound = true;
+    private bool isGameOver = false;
 
     public int score { get; private set; } = 0;
     public int lives { get; private set; } = 3;
@@ -81,6 +84,16 @@ public class Manager : MonoBehaviour
         SetScore(0);
         SetLives(3);
         NewRound();
+
+        blackBackground.SetActive(false);
+        gameOverText.enabled = false;
+        restartText.enabled = false;
+        isGameOver = false;
+
+        if (FindObjectOfType<MusicManager>() != null)
+        {
+            FindObjectOfType<MusicManager>().audioSource.mute = false;
+        }
     }
 
     private void NewRound()
@@ -107,6 +120,12 @@ public class Manager : MonoBehaviour
 
     private void GameOver()
     {
+
+        gameOverText.enabled = true;
+        restartText.enabled = true; 
+        blackBackground.SetActive(true); 
+        isGameOver = true; 
+
         gameOverText.enabled = true;
 
         for (int i = 0; i < enemies.Length; i++)
@@ -122,6 +141,11 @@ public class Manager : MonoBehaviour
         }
 
         CheckNewRecord(score);
+
+        if (FindObjectOfType<MusicManager>() != null)
+        {
+            FindObjectOfType<MusicManager>().audioSource.mute = true;
+        }
     }
 
     private void SetLives(int lives)
