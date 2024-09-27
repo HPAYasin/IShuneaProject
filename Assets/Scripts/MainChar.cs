@@ -149,7 +149,8 @@ public class MainChar : MonoBehaviour
         movement.ResetState();
         gameObject.SetActive(true);
 
-        StopSwordSwingSound();  
+        StopSwordSwingSound();
+        canPlayFootstep = true;
     }
 
     public void DeathSequence()
